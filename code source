@@ -1,0 +1,1358 @@
+
+#hkimi mohamed ismail :Tel : +216 95 990 512 . mail :hkimi.ismail@gmail.com
+#le 02-10-2020 ajouter les couleur pour les données par mesure instrume,tal  resistivité de sol en fonction de lappariel de mesure de la resistance
+# ro= 2*pi*A*R avec A distance entre le piquet en cm ey R la resistance R=V/I et pi =3.14
+
+#les couleur
+#---Vert---- saisie par resultat de mesure
+#---Rouge--- resultat de calcule
+#---Blanc ou bleu--- donnée dans l'application donné standart
+import sqlite3
+
+#les site de reference :
+#https://slideplayer.fr/slide/9523801/
+from math import sin, pi,log,exp,sqrt,cosh,sinh,log10
+#-----------------------------------------------------
+import tkinter
+from tkinter import*
+import tkinter.ttk as ttk
+import tkinter.messagebox as tkMessageBox
+################################################
+#-----------------------Mise à jour le 29-07-2020------------------
+#------------------Automatisation des valeurs via keepwere--------
+
+#-----------------------------------------------------
+#.....................................
+#-----------------------------------# -------------Donné utile-----
+#------------------------------------#
+#==================================METHODS============================================
+
+def Database():
+    
+    global conn, cursor
+    conn = sqlite3.connect('Cathodic_base.db')
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA foreign_keys = ON")
+    cursor.execute("""
+                   CREATE TABLE IF NOT EXISTS `production` (
+                   mem_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                   Date date,
+                   TK05_1 REAL,
+                   TK05_2 REAL,
+                   TK01_1 REAL,
+                   TK01_2 REAL,
+                   TK01_3 REAL,
+                   P_j_A REAL,
+                   P_j_B REAL,
+                   P_j_AB REAL,
+                    N_BAC_B REAL
+                   )
+
+             
+    """)
+    cursor.execute("""
+                   CREATE TABLE IF NOT EXISTS `arret` (
+                   arr_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                   mem_id INTEGER NOT NULL, 
+                   Date date,
+                   Peride_Arrêt REAL,
+                   Defaut TEXT,
+                   unite TEXT,
+                   FOREIGN KEY(mem_id) REFERENCES production(mem_id)
+                   ON DELETE CASCADE 
+                   ON UPDATE NO ACTION
+                   )
+
+                  
+    """)
+    
+    
+def Create2():# Verifier et valider
+    from datetime import datetime
+    
+    Database()
+    cursor.execute("SELECT date  FROM `production` WHERE `date`= ?",(datetime.strptime(B[r][0], '%Y-%m-%d %H:%M:%S').strftime("%Y-%m-%d"),))
+    fetchhh = cursor.fetchall()
+    l=len(fetchhh)
+
+    if (l>=1) :
+    
+        result = tkMessageBox.askquestion('Vérifier la date ?',
+                                      icon="warning")
+        txt_result.config(text="Please complete the required field!", fg="red")
+    else:
+        #EQ()
+        
+        
+        Database()
+        #op1()
+        cursor.execute("""
+                       INSERT INTO `production` (
+                       Date,
+                       TK05_1,
+                       TK05_2,
+                       TK01_1,
+                       TK01_2,
+                       TK01_3,
+                        N_BAC_B
+                    
+                       )
+                       VALUES(?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """,
+                       (
+                         datetime.strptime(B[r][0], '%Y-%m-%d %H:%M:%S').strftime("%Y-%m-%d"),# saisie de la date du jour0
+                           B[r][1],# niveau TK05_1,1
+                           B[r][2],# niveau TK05_2,2
+                           B[r][3],# niveau TK01_1,3
+
+                           B[r][22]#niveau bac acide b 55 
+                           )
+                       )
+
+                   
+   
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+
+   
+def Create():# Verifier et valider
+    
+    Database()
+    cursor.execute("SELECT date  FROM `production` WHERE `date`= ?",(str(Date.get()),))
+    fetchhh = cursor.fetchall()
+    l=len(fetchhh)
+
+    if (l>=1) :
+    
+        result = tkMessageBox.askquestion('Vérifier la date ?',
+                                      icon="warning")
+        txt_result.config(text="Please complete the required field!", fg="red")
+    else:
+        EQ()
+        
+        Database()
+        #op1()
+        cursor.execute("""
+                       INSERT INTO `production` (
+                       Date,
+                       TK05_1,
+                       N_BAC_B
+                       
+                       
+                       )
+                       VALUES(?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                       ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) """,
+                       (
+                           str(Date.get()),# saisie de la date du jour0
+                           str(IN.get()),# niveau TK05_1,1
+                           str(IN1.get()),# niveau TK05_2,2
+                           str(INnb.get())#niveau bac acide b 55
+                          
+                           )
+                       )
+                                    
+   
+
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+        IN15.set('')
+#-------------------------------------
+        #TEST()
+        Read()
+        
+
+#-----------------------------------#
+########################## fin ligne 01#########################
+
+fenetre = Tk()
+fenetre.title("ICCP:V1.0")
+screen_width = fenetre.winfo_screenwidth()
+screen_height = fenetre.winfo_screenheight()
+width = 570
+height = 660
+x = (screen_width/2) - (width/2)
+y = (screen_height/2) - (height/2)
+fenetre.geometry('%dx%d+%d+%d' % (width, height, x, y))
+fenetre.resizable(0, 0)
+
+################################################################
+
+# 2-Creation de la siparation de la page principale
+#PanedWindow
+p0 = PanedWindow(fenetre, orient=HORIZONTAL)
+p0.pack(side=LEFT, expand=N, fill=BOTH, pady=1, padx=1)
+p0.pack()
+
+p = PanedWindow(fenetre, orient=HORIZONTAL)
+p.pack(side=LEFT, expand=N, fill=BOTH, pady=1, padx=1)
+p.pack()
+#----------------------------
+p1 = PanedWindow(fenetre, orient=HORIZONTAL)
+p1.pack(side=LEFT, expand=Y, fill=BOTH, pady=1, padx=1)
+p1.pack()
+#----------------------------
+p2 = PanedWindow(fenetre, orient=HORIZONTAL)
+p2.pack(side=LEFT, expand=Y, fill=BOTH, pady=1, padx=1)
+p2.pack()
+#----------------------------
+
+#PanedWindow2
+pw2 = PanedWindow(fenetre, orient=HORIZONTAL)
+pw2.pack(side=TOP, expand=Y, fill=BOTH, pady=2, padx=2)
+pw2.pack()
+#==================================FRAME==============================================
+
+Left = Frame(fenetre, width=900, height=10, bd=2, relief="raise")
+Left.pack(side=BOTTOM)
+
+
+
+"""
+#position des bouton  rste a verifier
+Buttons = Frame(fenetre, width=0, height=100, bd=1, relief="groove")
+Buttons.pack(side=BOTTOM)
+
+Right = Frame(Left, width=900, height=20, bd=0, relief="raise")
+Right.pack(side=LEFT)
+"""
+
+#############################################################
+##################     Bloc EQUATION ET CALCULE   #####
+############################################################# 
+####################################################
+#################charger les variable pour equation calcule tonne ###############
+def calcule1():
+    
+    
+    global Coef_attunuation,resistance_entré_conduite,S_surface_round
+    ################"Calcule de la surface à proteger################
+    if type_equipement.get()=='Pipe':
+        #donné :
+        #Diametre =IN
+        #Epaisseur=IN1*pow(10,-3)
+        #Longeur=IN2.get()*pow(10,3)
+        S_surface=2*pi*(IN.get()/2)*IN2.get()*pow(10,3)
+        S_surface_round=round(S_surface,0)
+        print('S_surface',S_surface)
+        S_pipe_Longitudinale=DoubleVar()
+        S_pipe_Longitudinale=pi*(IN.get()-(IN1.get()*pow(10,-3)))*IN1.get()*pow(10,-3)
+
+        print('S_pipe_Longitudinale',S_pipe_Longitudinale)
+
+         #Resistance Longitudinale de la conduite à protegé:
+        R_Longitudinale=DoubleVar()
+        R_Longitudinale=(IN000.get()*pow(10,-6))/S_pipe_Longitudinale
+        print('R_Longitudinale',R_Longitudinale)
+        print('IN000',IN000.get())
+
+
+        IN104.set(round((R_Longitudinale*pow(10,6)),3))#diamétre exetrieure
+        Label(Lw200, text=f"{IN104.get()}(10^-6)(Ω/m)",width=20,fg='red',bg='white').grid(column=1, row=3)
+
+
+        #résistance spécifique d’isolement après une durée d’exploitation (Ωm2):
+        
+        R_isol_fin=DoubleVar()
+        
+        R_isol_fin=IN00.get()*((1-exp(-IN16.get()*IN14.get())))/(IN16.get()*IN14.get())
+        IN102.set(round(R_isol_fin,3))
+        Label(Lw200, text=f"{IN102.get()} (Ω.m2)",width=20,fg='red',bg='white').grid(column=1, row=1)
+        print('R_isol_fin',R_isol_fin)
+
+        #Resistance transvissale de la conduite à protegé:
+
+        R_transvirsal=DoubleVar()
+        R_transvirsal=R_isol_fin/(pi*IN.get())
+        IN103.set(round(R_transvirsal,3))
+        Label(Lw200, text=f"{IN103.get()} (Ω.m)",width=20,fg='red',bg='white').grid(column=1, row=2)
+
+
+
+        #Coefiecien d'attenuation toute le longue de la protection (conduite):
+        Coef_attunuation=DoubleVar()
+        
+        Coef_attunuation=sqrt(R_Longitudinale/R_transvirsal)
+        IN105.set(round(Coef_attunuation*pow(10,5),3))
+        Label(Lw200, text=f"{IN105.get()} (10^-5)(m^-1)",width=20,fg='red',bg='white').grid(column=1, row=4)
+        
+
+        #resistance total de la conduite y compris le revetements resistance d(entrée du courant)
+        print('R_Longitudinale',R_Longitudinale)
+        print('R_transvirsal',R_transvirsal)
+        print('prod',R_transvirsal*R_Longitudinale)
+        resistance_entré_conduite=sqrt(R_Longitudinale*R_transvirsal)
+        IN106.set(round(resistance_entré_conduite,3))
+        Label(Lw200, text=f"{IN106.get()} (Ω)",width=20,fg='red',bg='white').grid(column=1, row=5)
+         
+        IN90.set(S_surface_round)#diamétre exetrieure
+        Label(Lw11, text=f"{IN90.get()}",width=15,fg='red',bg='white').grid(column=2, row=1)
+        Label(Lw20, text=f"{IN90.get()} (m^2)",width=10,fg='red',bg='white').grid(column=2, row=8)
+
+        IN_Result=DoubleVar()
+        IN_Result=float(IN.get())/0.0254
+        r0=DoubleVar()
+        r0.set(round(IN_Result,1))
+        Label(Lw11, text=f"(m)/{r0.get()}inch",width=15,bg='white').grid(column=2, row=2)
+
+        return Coef_attunuation,resistance_entré_conduite,S_surface_round
+    
+    if type_equipement.get()=='Réservoir':
+        print('en cours de traitement')
+         #donné :
+        #Diametre =IN
+        #Epaisseur=IN1*pow(10,-3)
+        #Longeur=IN2.get()*pow(10,3)
+        S_surface=pi*((IN3.get()*IN3.get())/4)+(IN3.get()*pi*IN4.get())
+        S_surface_round=round(S_surface,0)
+        print('S_surface',S_surface)
+        IN90.set(S_surface_round)#diamétre exetrieure
+        Label(Lw11, text=f"{IN90.get()}",width=15,fg='red',bg='white').grid(column=2, row=1)
+        Label(Lw20, text=f"{IN90.get()} (m^2)",width=10,fg='red',bg='white').grid(column=2, row=8)
+
+        return S_surface_round
+
+       
+
+
+
+def calcule2():
+    
+    if type_equipement.get()=='Pipe':
+    
+        #Potentiel naturel du conduite En:
+        Ea_max=IN117.get()-IN116.get()#Ea_max=Ep_max-En
+        print('Ea_max',Ea_max)
+        
+        Ea_min=IN118.get()-IN116.get()#Ea_min=Ep_min-En
+        print('Ea_min',Ea_min)
+
+        #-y=distance entre la masse anodique et la conduite à protéger (m):
+
+        y_langeur_entre_anode=1
+        
+        #-Coefficient,K, tenant compte des postes de soutirage voisins 
+
+        a=(Ea_max/Ea_min)*(Ea_max/Ea_min)
+        print('a',a)
+        
+
+        #-la longueur de protection d’un poste de soutirage Lp:
+        
+        Lp=round((2/Coef_attunuation)*log((Ea_max/Ea_min)+sqrt(a-1)),2)
+        print('Lp',Lp)
+        IN107.set(round(Lp,2))
+        Label(Lwp, text=f"{IN107.get()} (m)",width=10,fg='red',bg='white').grid(column=1, row=1)
+
+
+
+        #-Calcul du nombre de postes de protection cathodique:
+
+        N_ppc=round(((IN2.get()*pow(10,3))/(Lp)),0)
+     
+        print('N_ppc',N_ppc)
+        IN110.set(N_ppc)
+        Label(Lwp, text=f"{IN110.get()}",width=10,fg='red',bg='white').grid(column=1, row=4)
+
+        # Evaluation de la nouvelle portée (LP’) d’un poste :
+
+
+        Lpp = (IN2.get()*pow(10,3))/N_ppc
+
+        print('Lp_prime',Lpp)
+
+        #Calcul de la nouvelle chute de potentiel aux extrémités (E0’) selon la relation :
+
+
+        E0_prime =abs( Ea_max/(cosh((Coef_attunuation*Lpp)/2)))
+        
+        print('E0_prime',E0_prime)
+
+        #- Détermination l’intensité de courant soutiré par poste :
+
+        I_poste=abs((2*E0_prime*sinh(Coef_attunuation*Lpp/2))/resistance_entré_conduite)
+        print('I_poste',I_poste)
+        #-Calcul de l’intensité du courant protecteur nécessaire au début et à la fin de l’exploitation :
+
+        I_prot_time=round(abs(IN117.get())/(y_langeur_entre_anode*(1+2*exp(-Coef_attunuation*Lp)+(IN5.get()/(2*pi*y_langeur_entre_anode)))),2)
+
+        print('I_prot_time',I_prot_time)
+        IN108.set(round(I_poste,1))
+        Label(Lwp, text=f"{IN108.get()} (mA)",width=10,fg='red',bg='white').grid(column=1, row=2)
+
+
+        #-Courant Total Admissible sur toutes les années
+        I_total_ann=round((I_poste*pow(10,-3)*IN14.get()),1)
+        print('I_total_ann',I_total_ann)
+        IN11.set(I_total_ann)
+        Label(Lwp, text=f"{IN11.get()} (A)",width=10,fg='red',bg='white').grid(column=1, row=5)
+
+
+    if type_equipement.get()=='Réservoir':
+
+        print('en cours de traitement')
+               #Potentiel naturel du conduite En:
+        Ea_max=IN117.get()-IN116.get()#Ea_max=Ep_max-En
+        print('Ea_max',Ea_max)
+        
+        Ea_min=IN118.get()-IN116.get()#Ea_min=Ep_min-En
+        print('Ea_min',Ea_min)
+
+        #-Courant Total Admissible sur toutes les années
+        I_total_ann=round((I_poste*pow(10,-3)*IN14.get()),1)
+        print('I_total_ann',I_total_ann)
+        IN11.set(I_total_ann)
+        Label(Lwp, text=f"{IN11.get()} (A)",width=10,fg='red',bg='white').grid(column=1, row=5)
+
+
+
+
+
+
+
+
+       
+'''
+    if type_equipement.get()=='Réservoir':
+        
+        S_surface=round(((pi/4*(IN3.get()*IN3.get()))+((pi*(IN40.get()*IN40.get()*IN4.get())))),1)
+   
+        print('S_surface',S_surface)
+
+        
+        IN90 .set(S_surface)#diamétre exetrieure
+        Label(Lw11, text=f"{IN90.get()}",width=15,fg='red',bg='white').grid(column=2, row=1)
+     ################"Fin de Calcule de la surface à proteger################
+       ################"Calcule de la courant de protection################
+    ## Ligne 4===row=4
+    ligne=8
+   
+    I_total=round((IN90.get()*pow(10,-3)*d_i.get()*(IN001.get())),2)
+    print('I_total',I_total)
+    IN1009.set(I_total)#diamétre exetrieure
+    Label(Lw20, text=f"{IN1009.get()} (A) ",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+    Label(Lw20, text=f"{IN90.get()} (m^2)",width=10,fg='red',bg='white').grid(column=2, row=ligne)
+       ################"Calcule de la courant de protection################
+       ################"Calcule Masse total de l'anode consommé################
+    ligne=9
+   
+    Masse_Anode_total=round((IN7.get()*IN1009.get()*IN14.get()),2)
+    print('Masse_Anode_total',Masse_Anode_total)
+    IN10009.set(Masse_Anode_total)#diamétre exetrieure
+    Label(Lw20, text=f"{IN10009.get()} (Kg) ",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+    
+    if IN5.get()< 25:
+         IN60.set('Trés  >13')
+         Label(Lw0, text=f"{IN60.get()}",width=10,fg='red',bg='white').grid(column=1, row=2)
+
+    if IN5.get()>= 26 and IN5.get()<= 50:
+         IN60.set('Moderne (9-12')
+         Label(Lw0, text=f"{IN60.get()}",width=10,fg='red',bg='white').grid(column=1, row=2)
+
+    if IN5.get()>= 51 and IN5.get()<= 100:
+         IN60.set('Moyen (4-9')
+         Label(Lw0, text=f"{IN60.get()}",width=10,fg='red',bg='white').grid(column=1, row=2)
+    if IN5.get()>100:
+         IN60.set('Faible <4')
+         Label(Lw0, text=f"{IN60.get()}",width=10,fg='red',bg='white').grid(column=1, row=2)
+    
+        
+
+    #1 emme 
+    ##Calcule de la résistivité du sol ro_sol=2*pi*a*R par mesure 
+    ro_sol=IN5.get#resistivité moyemme du sol en ohm.m
+    R_sol=1#Résistance moyenne du sol en ohm
+    a_resistivité=1# espacement entre les piquet
+    ro_sol=2*pi*a_resistivité*R_sol
+    print('1 cherche la resistivité du sol',ro_sol)
+
+
+
+
+    
+    ligne=11
+    i1=(IN7.get())*(IN9.get())*(IN14.get())
+    IN11.set(i1)
+    Label(Lw22, text=f"{IN11.get()} (Kg)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+
+    ligne=12
+    i2=(IN9.get())*(IN9.get())*(IN9.get())
+    IN12.set(i2)
+    Label(Lw22, text=f"{IN12.get()} (m)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+
+    ligne=13
+    Label(Lw22, text=f"{IN13.get()} (Ω)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+'''
+#############################################################
+##################     Bloc EQUATION ET CALCULE   #####
+#############################################################    
+
+#############################################################
+##################     Bloc Caracteristique Equipement   #####
+#############################################################
+
+L = LabelFrame(p, text="Equipement_caractéristique ")
+L.pack()
+ #-----------------------------------------
+#LabelFrame dans L
+Lw0 = LabelFrame(L, text="Durée_de_vie(Années)/Resistivité_du_Sol", padx=1, pady=1)
+Lw0.pack(fill="both", expand="yes")
+
+#LabelFrame dans L
+Lw1 = LabelFrame(L, text="Nuance_acier_(Résistivité)", padx=1, pady=1)
+Lw1.pack(fill="both", expand="yes")
+#LabelFrame
+Lw10 = LabelFrame(L, text="Revetement", padx=1, pady=1)
+Lw10.pack(fill="both", expand="yes")
+#LabelFrame
+Lw11 = LabelFrame(L, text="Dimension_équipement", padx=1, pady=1)
+Lw11.pack(fill="both", expand="yes")
+#LabelFrame
+Lw12 = LabelFrame(L, text="Diamétre_ext", padx=1, pady=1)
+Lw12.pack(fill="both", expand="yes")
+
+# -----------------------------------------
+IN14 = DoubleVar()#diamétre exetrieure
+
+Spinbox(Lw0,from_=5,to=30,increment=1,textvariable=IN14,width=10).grid(column=0, row=1, padx=1, pady=1)  
+#############################################################
+##################     Bloc Caracteristique Live durée de vie   #####
+#############################################################
+
+IN5 = DoubleVar()#diamétre exetrieure
+#In5 = Entry(Lw22,textvariable=IN5,width=8,bg='white').grid(column=1, row=ligne)
+Label(Lw0, text="Ω.m",width=6,bg='white').grid(column=2, row=1)
+
+Spinbox(Lw0,from_=5,to=105,increment=1,textvariable=IN5,width=10).grid(column=1, row=1, padx=1, pady=1)  
+
+Label(Lw0, text="Vitesse_Corr").grid(column=0, row=2)
+IN60 = StringVar()#diamétre exetrieure
+Label(Lw0, text=f"{IN60.get()}",width=10,fg='red',bg='white').grid(column=1, row=2)
+Label(Lw0, text="(10^6)mm/Ans",width=12,bg='white').grid(column=2, row=2)
+
+#scale ***********************************
+#Scale(Lw0,variable=IN14, orient='horizontal', from_=5, to=30, length=80).grid(column=1, row=1, padx=1, pady=1)  
+def callbackFuncmateriel(event):
+     print("New Element Selected")
+     #-------------------------------------------
+    #saisie Bloc N°1 donné pipe
+     if Materiel.get()=='Iron_Steel_Aerobic':
+        type_electrodeChosen.current(0)
+        IN118.set(-850)
+        IN117.set(-1000)
+        IN116.set(0)
+     if Materiel.get()=='Iron_Steel_Anaerobic':
+        type_electrodeChosen.current(0)
+        IN118.set(-950)
+        IN117.set(-1200)
+        IN116.set(0)
+     if Materiel.get()=='Lead':
+        type_electrodeChosen.current(0)
+        IN118.set(-600)
+        IN117.set(-1000)
+        IN116.set(0)
+     if Materiel.get()=='Aluminum':
+        type_electrodeChosen.current(0)
+        IN118.set(-950)
+        IN117.set(-1200)
+        IN116.set(0)
+     if Materiel.get()=='Copper_Alloys':
+        type_electrodeChosen.current(0)
+        IN118.set(-500)
+        IN117.set(-650)
+        IN116.set(0)
+     if Materiel.get()=='316_304_Stainless_passive':
+        type_electrodeChosen.current(2)
+        IN116.set(-100)
+        IN117.set(-1000)
+        IN118.set(-750)
+     if Materiel.get()=='316_304_Stainless_active':
+        type_electrodeChosen.current(2)
+        IN116.set(-500)
+        IN117.set(-1100)
+        IN118.set(-750)
+     if Materiel.get()=='Zinc_Aluninum_Anode':
+        type_electrodeChosen.current(2)
+        IN116.set(-1050)
+        IN117.set(0)
+        IN118.set(0)
+     if Materiel.get()=='Magnesium_Anode':
+        type_electrodeChosen.current(2)
+        IN116.set(-1500)
+        IN117.set(0)
+        IN118.set(0)
+Materiel = tkinter.StringVar()                         # 2
+MaterielChosen = ttk.Combobox(Lw1, width=12, textvariable=Materiel) #3
+MaterielChosen['values'] = ('Iron_Steel_Aerobic','Iron_Steel_Anaerobic','Lead','Aluminum',
+                          'Copper_Alloys','316_304_Stainless_passive','316_304_Stainless_active',
+                          'Zinc_Aluninum_Anode','Magnesium_Anode')     # 4
+MaterielChosen.grid(column=0, row=1)              # 5
+MaterielChosen.current(0)
+MaterielChosen.bind("<<ComboboxSelected>>", callbackFuncmateriel)
+
+IN001=DoubleVar()
+
+type_acier = tkinter.StringVar()                         # 2
+numberChosen = ttk.Combobox(Lw1, width=12, textvariable=type_acier) #3
+numberChosen['values'] = ('Acier_Carbonne','INOX','304','904L')     # 4
+numberChosen.grid(column=1, row=1)              # 5
+numberChosen.current(0)
+
+IN000=DoubleVar()
+Spinbox(Lw1,from_=0.5,to=20,increment=0.5,textvariable=IN000,width=10).grid(column=0, row=2)  
+
+Label(Lw1, text="(10^-6)Ω.m",width=12,bg='white').grid(column=1, row=2)#resistivité du materiaux
+
+ #-----------------------------------------
+# -----------------------------------------
+type_revetement = tkinter.StringVar()                         # 2
+numberChosen = ttk.Combobox(Lw10, width=12, textvariable=type_revetement) #3
+numberChosen['values'] = ('Nue','Polyethylene','Polypropylene','Pienture_Epoxy','Revêtement_épais','Epoxy_Collé(Goudron)')     # 4
+numberChosen.grid(column=1, row=1)              # 5
+numberChosen.current(1)
+#scale ***********************************
+IN00=DoubleVar()
+Spinbox(Lw10,from_=0.5,to=20,increment=0.5,textvariable=IN001,width=4).grid(column=2, row=1)  
+
+#Entry(Lw10,textvariable=IN001,width=5,bg='white').grid(column=2, row=1)
+
+lab1=Label(Lw10, text="(%)Rupture",width=12,bg='white').grid(column=3, row=1)#resistivité du materiaux
+
+etat_revetement = tkinter.StringVar()                         # 2
+numberChosen = ttk.Combobox(Lw10, width=12, textvariable=etat_revetement) #3
+numberChosen['values'] = ('R_Poor(1-2.5)','R_Fair(5-10)','R_Good(25-50)','R_Excellent(100-500)')     # 4
+numberChosen.grid(column=1, row=2)              # 5
+numberChosen.current(0)
+Entry(Lw10,textvariable=IN00,width=6,bg='white').grid(column=2, row=2)
+        
+Label(Lw10 ,text="(Ω.m^2)",width=10,bg='white').grid(column=3, row=2,padx=1, pady=1)
+
+
+Label(Lw10, text="Coeff_Vieillissement").grid(column=1, row=3)
+IN16 = DoubleVar()#diamétre exetrieure
+In16 = Entry(Lw10,textvariable=IN16,width=8,bg='white').grid(column=2, row=3)
+"""
+imag1="bac_horizental.png"
+photo1 = PhotoImage(file=imag1)
+canvas = Canvas(pw2, width=photo1.width(), height=photo1.height())
+canvas.create_image(0, 0, anchor=NW, image=photo1)
+canvas.pack()
+  
+    
+imag2="2.png"
+photo2 = PhotoImage(file=imag2)
+canvas = Canvas(pw2, width=photo2.width(), height=photo2.height())
+canvas.create_image(0, 0, anchor=NW, image=photo2)
+canvas.pack()
+"""
+ #-----------------------------------------
+# -----------------------------------------
+IN = DoubleVar()#diamétre exetrieure
+IN1 = DoubleVar()#diamétre exetrieure
+
+IN2 = DoubleVar()#diamétre exetrieure
+IN3 = DoubleVar()#diamétre exetrieure
+IN4 = DoubleVar()#diamétre exetrieure
+IN40 = DoubleVar()#diamétre exetrieure
+
+def callbackFunc(event):
+
+     #-------------------------------------------
+    #saisie Bloc N°1 donné pipe
+      if type_equipement.get()=='Pipe':
+
+ 
+        print('',type_equipement.get())
+        Label(Lw11, text="Diamétre_Ext").grid(column=0, row=2)
+        In = Entry(Lw11,textvariable=IN,width=8,bg='white').grid(column=1, row=2)
+        IN_Result=DoubleVar()
+        IN_Result=float(IN.get())/0.0254
+        r0=DoubleVar()
+        r0.set(round(IN_Result,1))
+        Label(Lw11, text=f"(m)/{r0.get()}inch",width=10,bg='white').grid(column=2, row=2)
+
+        Label(Lw11, text="Epaisseur").grid(column=0, row=3)
+        In1 = Entry(Lw11,textvariable=IN1,width=8,bg='white').grid(column=1, row=3)
+        Label(Lw11, text="(mm)",width=10,bg='white').grid(column=2, row=3)
+
+
+        Label(Lw11, text="Longueur_Pipe").grid(column=0, row=4)
+        In2 = Entry(Lw11,textvariable=IN2,width=8,bg='white').grid(column=1, row=4)
+        Label(Lw11, text="(Km)",width=10,bg='white').grid(column=2, row=4)
+
+      if type_equipement.get()=='Réservoir':
+
+        ###reservoir
+        Label(Lw11, text="Diametre_TK").grid(column=0, row=2)
+        In3 = Entry(Lw11,textvariable=IN3,width=8,bg='white').grid(column=1, row=2)
+        Label(Lw11, text="(m)",width=10,bg='white').grid(column=2, row=2)
+
+        Label(Lw11, text="Hauteur_TK").grid(column=0, row=3)
+        In4 = Entry(Lw11,textvariable=IN4,width=8,bg='white').grid(column=1, row=3)
+        Label(Lw11, text="(m)",width=10,bg='white').grid(column=2, row=3)
+        Label(Lw11, text="Epaissesur_tk").grid(column=0, row=4)
+        In40 = Entry(Lw11,textvariable=IN40,width=8,bg='white').grid(column=1, row=4)
+        Label(Lw11, text="(mm)",width=10,bg='white').grid(column=2, row=4)
+
+type_equipement = tkinter.StringVar()                         # 2
+numberChosen = ttk.Combobox(Lw11, width=12, textvariable=type_equipement) #3
+numberChosen['values'] = ('Pipe','Réservoir','Echangeur')     # 4
+numberChosen.grid(column=0, row=1)              # 5
+numberChosen.current(0)
+numberChosen.bind("<<ComboboxSelected>>", callbackFunc)
+IN90 = DoubleVar()#diamétre exetrieure
+Label(Lw11, text=f"{IN90.get()}",width=10,fg='red',bg='white').grid(column=2, row=1)
+Label(Lw11, text="Surface(m^2)",width=10,bg='white').grid(column=1, row=1)
+
+#-----------------------------------------
+#LabelFrame
+Lw4 = LabelFrame(p2, text="", padx=1, pady=1)
+Lw4.pack(fill="both", expand="yes")
+    
+
+    
+#############################################################
+##################    Fin Bloc Caracteristique Equipement   #####
+#############################################################
+#############################################################
+##################     Bloc  Ptentiel                   #####
+#############################################################
+
+#LabelFrame dans Lw2
+Lw21 = LabelFrame(Lw4, text="Potentiels", padx=1, pady=1)
+Lw21.pack(fill="both", expand="yes")
+
+Label(Lw21, text="Electrode_Réf").grid(column=0, row=1)
+def callbackFunc4(event):
+     print("New Element Selected")
+     #-------------------------------------------
+    #saisie Bloc N°1 donné pipe
+     if type_electrode.get()=='Elec_Sulfate_Cuivre (CSE)':
+
+         E_ref=DoubleVar()
+         E_ref=0.316
+         print("E_ref=0.316")
+         IN116.set(IN116.get()+E_ref)
+         IN117.set(IN117.get()+E_ref)
+         IN118.set(IN118.get()+E_ref)
+
+     if type_electrode.get()=='Elec_Calomel (ECS)':
+         E_ref=DoubleVar()
+         E_ref=0.244
+         IN116.set(IN116.get()+E_ref)
+         IN117.set(IN117.get()+E_ref)
+         IN118.set(IN118.get()+E_ref)
+
+     if type_electrode.get()=='Elec_Chlorure_argent':
+         E_ref=DoubleVar()
+         E_ref=0.197
+         IN116.set(IN116.get()+E_ref)
+         IN117.set(IN117.get()+E_ref)
+         IN118.set(IN118.get()+E_ref)
+
+     if type_electrode.get()=='Hydrogene (ESH)':
+         E_ref=DoubleVar()
+         E_ref=0
+         IN116.set(IN116.get()+E_ref)
+         IN117.set(IN117.get()+E_ref)
+         IN118.set(IN118.get()+E_ref)
+         
+
+type_electrode = tkinter.StringVar()                         # 2
+type_electrodeChosen = ttk.Combobox(Lw21, width=15, textvariable=type_electrode) #3
+type_electrodeChosen['values'] = ('Elec_Sulfate_Cuivre (CSE)','Elec_Calomel (ECS)','Elec_Chlorure_argent','Hydrogene (HSE)')     # 4
+type_electrodeChosen.grid(column=1, row=1)              # 5
+type_electrodeChosen.current(0)
+type_electrodeChosen.bind("<<ComboboxSelected>>", callbackFunc4)
+
+Label(Lw21, text="Pot_Naturel_acier(mV)").grid(column=0, row=4)
+IN116 = DoubleVar()#diamétre exetrieure
+Entry(Lw21,textvariable=IN116,width=8,bg='white').grid(column=1, row=4)
+
+
+Label(Lw21, text="Pot_Max_protection(mV)").grid(column=0, row=5)
+IN117 = DoubleVar()#diamétre exetrieure
+Entry(Lw21,textvariable=IN117,width=8,bg='white').grid(column=1, row=5)
+
+
+Label(Lw21, text="Pot_Min_protection(mV)").grid(column=0, row=6)
+IN118 = DoubleVar()#diamétre exetrieure
+Entry(Lw21,textvariable=IN118,width=8,bg='white').grid(column=1, row=6)
+
+
+#############################################################
+##################     fin  Bloc  Ptentiel            #####
+#############################################################
+#*************************************************************
+#############################################################
+##################     Bloc Resultat de calculle1 potentiel#####
+#############################################################
+
+
+Lwp = LabelFrame(Lw4, text="Résultats_2:", padx=1, pady=1,bg='white')
+Lwp.pack(fill="both", expand="yes")
+
+
+Label(Lwp, text="Bras_Prot_Cathode:",bg='white').grid(column=0, row=1)
+IN107 = DoubleVar()#diamétre exetrieure
+Label(Lwp, text=f"{IN107.get()} (m)",width=10,fg='red',bg='white').grid(column=1, row=1)
+## Ligne 3===row=3
+ligne=2
+IN108 = DoubleVar()#diamétre exetrieure
+Label(Lwp, text="Courant_Soutirage/poste/Ans:",bg='white').grid(column=0, row=ligne)
+Label(Lwp, text=f"{IN108.get()} (mA)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+## Ligne 4===row=4
+ligne=3
+Label(Lwp, text="Res_Equi(R_soutirage):",bg='white').grid(column=0, row=ligne)
+IN109 = DoubleVar()#diamétre exetrieure
+Label(Lwp, text=f"{IN109.get()} (Ω)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+ligne=4
+Label(Lwp, text="Nombre_Poste:",bg='white').grid(column=0, row=ligne)
+IN110 = DoubleVar()#diamétre exetrieure
+Label(Lwp, text=f"{IN110.get()}",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+## Ligne 4===row=4
+ligne=5
+Label(Lwp, text="Courant_Total:",bg='white').grid(column=0, row=ligne)
+IN11 = DoubleVar()#diamétre exetrieure
+Label(Lwp, text=f"{IN11.get()} (A)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+
+#Button(Lwp, width=5, text="Run", bg="green", command=calcule2).grid(column=0, row=12)
+
+###########################################################
+#############################################################
+##################    Fin Bloc Resultat de calculle 2    #####
+#############################################################
+
+
+#************************************************************
+#############################################################
+##################     Bloc Caracteristique Déversoir   #####
+#############################################################
+
+Lw22 = LabelFrame(Lw4, text=" Déversoirs (Anode)", padx=1, pady=1)
+Lw22.pack(fill="both", expand="yes")
+
+def callbackFunc3(event):
+     print("New Element Selected")
+     #-------------------------------------------
+    #saisie Bloc N°1 donné pipe
+     if type_deversoir.get()=='En_Fer':
+         IN7.set(9)
+
+     if type_deversoir.get()=='Ferro-silicium':
+         IN7.set(0.5)
+
+     if type_deversoir.get()=='Graphite':
+         IN7.set(0.4)
+
+     if type_deversoir.get()=='Magnétite':
+         IN7.set(0.015)
+         
+Label(Lw22, text="Type_déversoir:").grid(column=0, row=0)
+type_deversoir = tkinter.StringVar()                         # 2
+numberdeversoir = ttk.Combobox(Lw22, width=8, textvariable=type_deversoir) #3
+numberdeversoir['values'] = ('En_Fer','Ferro-silicium','Graphite','Magnétite')     # 4
+numberdeversoir.grid(column=1, row=0)              # 5
+numberdeversoir.current(0)
+numberdeversoir.bind("<<ComboboxSelected>>", callbackFunc3)
+
+
+def callbackFunc_emplacement(event):
+     r_déversoir=DoubleVar()# en HOme
+     ro_sol=IN5.get()#Home.m  IN5
+     ra_anode=IN8.get()#m
+     S_profondeur=IN10.get()#m
+     L=IN88.get()#IN12.get()#m
+     print(f"Ro={ro_sol} Rayon={ra_anode} Profondeur={S_profondeur} L={L}")
+
+
+
+
+     if type_emplacement.get()=='Vertical':
+         r_déversoir=(ro_sol/(2*pi*L))*((log((4*L)/(ra_anode/2)))-1)
+         print('r_déversoir',round(r_déversoir,2))
+
+         IN13.set(round(r_déversoir,2))
+         Label(Lw22, text=f"{IN13.get()} (Ω)",width=10,fg='red',bg='white').grid(column=1, row=15)
+
+
+     if type_emplacement.get()=='Horizontal':
+         r_déversoir=(ro_sol/(4*pi*L))*((log((4*L)/(ra_anode/2)))+(log((4*L)/S_profondeur))-2+(S_profondeur/(2*L))-(pow(S_profondeur,2)/(16*pow(L,2))+(pow(S_profondeur,4)/512**pow(L,4))))
+         print('r_déversoir',round(r_déversoir,2))
+
+         IN13.set(round(r_déversoir,2))
+         Label(Lw22, text=f"{IN13.get()} (Ω)",width=10,fg='red',bg='white').grid(column=1, row=15)
+
+
+
+
+
+
+ligne=5
+Label(Lw22, text="Masse").grid(column=0, row=ligne)
+IN6 = DoubleVar()#diamétre exetrieure
+In6 = Entry(Lw22,textvariable=IN6,width=8,bg='white').grid(column=1, row=ligne)
+Label(Lw22, text="Kg",width=6,bg='white').grid(column=2, row=ligne)
+
+ligne=6
+Label(Lw22, text="Pouvoir_dissolution").grid(column=0, row=ligne)
+IN7 = DoubleVar()#diamétre exetrieure
+In7 = Entry(Lw22,textvariable=IN7,width=8,bg='white').grid(column=1, row=ligne)
+Label(Lw22, text="Kg/A.ans",width=6,bg='white').grid(column=2, row=ligne)
+ligne=7
+Label(Lw22, text="Diamétre").grid(column=0, row=ligne)
+IN8 = DoubleVar()#diamétre exetrieure
+In8 = Entry(Lw22,textvariable=IN8,width=8,bg='white').grid(column=1, row=ligne)
+Label(Lw22, text="m",width=6,bg='white').grid(column=2, row=ligne)
+ligne=8
+Label(Lw22, text="Longueur").grid(column=0, row=ligne)
+IN88 = DoubleVar()#diamétre exetrieure
+In88 = Entry(Lw22,textvariable=IN88,width=8,bg='white').grid(column=1, row=ligne)
+Label(Lw22, text="m",width=6,bg='white').grid(column=2, row=ligne)
+
+ligne=9
+
+Label(Lw22, text="Max_I").grid(column=0, row=ligne)
+IN99 = DoubleVar()#diamétre exetrieure
+In99 = Entry(Lw22,textvariable=IN99,width=8,bg='white').grid(column=1, row=ligne)
+Label(Lw22, text="Amp",width=6,bg='white').grid(column=2, row=ligne)
+ligne=10
+
+Label(Lw22, text="Facteur_init").grid(column=0, row=ligne)
+IN9 = DoubleVar()#diamétre exetrieure
+In9 = Entry(Lw22,textvariable=IN9,width=8,bg='white').grid(column=1, row=ligne)
+
+
+ligne=11
+Label(Lw22, text="Masse_Total").grid(column=0, row=ligne)
+IN11 = DoubleVar()#diamétre exetrieure
+Label(Lw22, text=f"{IN11.get()} (Kg)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+
+ligne=12
+Label(Lw22, text="Nombre_anode").grid(column=0, row=ligne)
+IN12 = DoubleVar()#diamétre exetrieure
+Label(Lw22, text=f"{IN12.get()}",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+
+ligne=13
+
+Label(Lw22, text="Emplacement").grid(column=0, row=ligne)
+type_emplacement = tkinter.StringVar()                         # 2
+empla_Chosen = ttk.Combobox(Lw22, width=8, textvariable=type_emplacement) #3
+empla_Chosen['values'] = ('Vertical','Horizontal')     # 4
+empla_Chosen.grid(column=1, row=ligne)              # 5
+empla_Chosen.current(0)
+empla_Chosen.bind("<<ComboboxSelected>>", callbackFunc_emplacement)
+ligne=14
+Label(Lw22, text="Profondeur_pose").grid(column=0, row=ligne)
+IN10 = DoubleVar()#diamétre exetrieure
+In10 = Entry(Lw22,textvariable=IN10,width=8,bg='white').grid(column=1, row=ligne)
+Label(Lw22, text="m",width=6,bg='white').grid(column=2, row=ligne)
+
+ligne=15
+Label(Lw22, text="Resistance_Déversoir").grid(column=0, row=ligne)
+IN13 = DoubleVar()#diamétre exetrieure
+Label(Lw22, text=f"{IN13.get()} (Ω)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+def anode():
+    """
+    #CD=consommation rate====S*a*CBDE===
+    #Surfac=S=====
+    #CBDF= facteur de repture=====IN0000
+    #=CD====IN90.get()
+    #N_anode(foumule 1)=(pouvoir de dissipation(IN7)*duré de vie(IN14)*CD(IN90))/(facteur initia(IN9)*poid par anode(IN6))====
+    #
+    #N_anode(foumule 2)=(courant total(IN1009 ou IN11)/(Max discharge par anode(IN99))
+    #
+    IN1009 
+"""
+    if type_equipement.get()=='Pipe':
+
+        #CD=
+        N_anode_1=round(((IN7.get()*(IN14.get()))/(IN9.get()*IN6.get())),0)
+        print('N_anode_1',N_anode_1)
+        N_anode_3=round(((IN7.get()*(IN1009.get()))/(IN9.get()*IN6.get())),0)
+        print('N_anode_3',N_anode_3)
+        N_anode_2=round(((IN1009.get()*pow(10,-3))/(IN99.get())),0)
+        print('N_anode_2',N_anode_2)
+        IN12.set(N_anode_1)
+        Label(Lw22, text=f"{IN12.get()}",width=10,fg='red',bg='white').grid(column=1, row=12)
+
+    if type_equipement.get()=='Réservoir':
+
+
+    ############
+        # cas du réservoir
+        print('IN7.get()',IN7.get())
+        print('IN14.get()',IN14.get())
+        print('IN1009.get()',IN1009.get())
+        M_total=round(((IN7.get())*(IN14.get())*(IN1009.get())),1)
+        print('M_total',M_total)
+        IN11.set(M_total)#diamétre exetrieure
+        Label(Lw22, text=f"{IN11.get()} (Kg)",width=10,fg='red',bg='white').grid(column=1, row=11)
+
+        N_anode_4=round((M_total/IN6.get()),0)
+        print('N_anode_4',N_anode_4)
+        IN12.set(N_anode_4)
+        Label(Lw22, text=f"{IN12.get()}",width=10,fg='red',bg='white').grid(column=1, row=12)
+       
+
+
+Button(Lw22, width=5, text="Run", bg="gray", command=anode).grid(column=2, row=11)
+
+
+#############################################################
+##################     Bloc Caracteristique Déversoir   #####
+#############################################################
+#*************************************************************
+#############################################################
+##################     Bloc Resultat de calculle1        #####
+#############################################################
+
+
+Lw200 = LabelFrame(L, text="Résultats_1:", padx=1, pady=1,bg='white')
+Lw200.pack(fill="both", expand="yes")
+
+## Ligne 1===row=1
+ligne=1
+Label(Lw200, text="Res_Isolement:",bg='white').grid(column=0, row=ligne)
+IN102 = DoubleVar()#diamétre exetrieure
+Label(Lw200, text=f"{IN102.get()} (Ω.m2)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+## Ligne 2===row=2
+ligne=2
+Label(Lw200, text="Res_Transversale:",bg='white').grid(column=0, row=ligne)
+IN103 = DoubleVar()#diamétre exetrieure
+Label(Lw200, text=f"{IN103.get()} (Ω.m)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+## Ligne 3===row=3
+ligne=3
+Label(Lw200, text="Res_Longtudinale:",bg='white').grid(column=0, row=ligne)
+IN104 = DoubleVar()#diamétre exetrieure
+Label(Lw200, text=f"{IN104.get()} (Ω/m)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+## Ligne 4===row=4
+ligne=4
+Label(Lw200, text="Coef_Attenuation:",bg='white').grid(column=0, row=ligne)
+IN105 = DoubleVar()#diamétre exetrieure
+Label(Lw200, text=f"{IN105.get()} (m^-1)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+## Ligne 5===row=5
+ligne=5
+Label(Lw200, text="Resistance_Val:",bg='white').grid(column=0, row=ligne)
+IN106 = DoubleVar()#diamétre exetrieure
+Label(Lw200, text=f"{IN106.get()} (Ω)",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+
+#Button(Lw200, width=5, text="Run", bg="green", command=1).grid(column=0, row=11)
+
+###########################################################
+#############################################################
+##################    Fin Bloc Resultat de calculle1     #####
+#############################################################
+
+
+#*************************************************************
+#############################################################
+##################     Bloc  Comparaison_données    #####
+#############################################################
+
+
+#LabelFrame dans Lw2
+Lw20 = LabelFrame(L, text="Comparaison", padx=1, pady=1)
+Lw20.pack(fill="both", expand="yes")
+
+
+
+def callbackFunc2(event):
+     print("New Element Selected")
+     #-------------------------------------------
+    #saisie Bloc N°1 donné pipe
+
+     if type_electrolyte.get()=='Eau_douce_froide_en_mouvement':
+         
+         d_i.set(50)
+         Lab1=Label(Lw20, text=f"{d_i.get()}",width=5,bg='white').grid(column=1, row=6)
+         
+
+     if type_electrolyte.get()=='Eau_douce_chaude_aéree':
+         
+         d_i.set(150)
+         Lab2=Label(Lw20, text=f"{d_i.get()}",width=5,bg='white').grid(column=1, row=6)
+         
+
+     if type_electrolyte.get()=='Eau_de_mer':
+         
+         Lab4=Label(Lw20, text="60 à 220",width=5,bg='white').grid(column=1, row=6)
+         Entry(Lw20,textvariable=d_i,width=8,bg='white').grid(column=1, row=7)
+
+
+     if type_electrolyte.get()=='Fonds_marins':
+        
+         Lab4=Label(Lw20, text="25 à 20",width=5,bg='white').grid(column=1, row=6)
+         Entry(Lw20,textvariable=d_i,width=8,bg='white').grid(column=1, row=7)
+
+     if type_electrolyte.get()=='Sols_secs':
+       
+         d_i.set(10)
+         Lab5=Label(Lw20, text=f"{d_i.get()}",width=5,bg='white').grid(column=1, row=6)
+         
+
+     if type_electrolyte.get()=='Sol_humide_argessif':
+       
+         d_i.set(30)
+         Lab6=Label(Lw20, text=f"{d_i.get()}",width=5,bg='white').grid(column=1, row=6)
+         
+
+     if type_electrolyte.get()=='Acier_enrobé_de_béton':
+         
+         Lab7=Label(Lw20, text="0.1 à 10",width=6,bg='white').grid(column=1, row=6)
+         Entry(Lw20,textvariable=d_i,width=8,bg='white').grid(column=1, row=7)
+
+    
+Label(Lw20, text=" mA/m^2",width=7,bg='white').grid(column=2, row=6)
+d_i=DoubleVar()      
+type_electrolyte = tkinter.StringVar()                         # 2
+Elec_Chosen = ttk.Combobox(Lw20, width=18, textvariable=type_electrolyte) #3
+Elec_Chosen['values'] = ('Eau_douce_froide_en_mouvement','Eau_douce_chaude_aéree','Eau_de_mer',
+                         'Fonds_marins','Sols_secs','Sol_humide_argessif','Acier_enrobé_de_béton')     # 4
+Elec_Chosen.grid(column=0, row=6)              # 5
+Elec_Chosen.current(0)
+Elec_Chosen.bind("<<ComboboxSelected>>", callbackFunc2)
+
+## Ligne 4===row=4
+ligne=8
+Label(Lw20, text="Courant_T_Surface_T",bg='white').grid(column=0, row=ligne)
+IN1009 = DoubleVar()#diamétre exetrieure
+Label(Lw20, text=f"{IN1009.get()} (A) ",width=10,fg='red',bg='white').grid(column=1, row=ligne)
+Label(Lw20, text=f"{IN90.get()} (m^2)",width=10,fg='red',bg='white').grid(column=2, row=ligne)
+def Amper():
+    global amper
+    amper=round((d_i.get()*pow(10,-3)*IN90.get()*IN001.get()),1)
+    print('amper',amper)
+    IN1009.set(amper)
+    Label(Lw20, text=f"{IN1009.get()} (A) ",width=10,fg='red',bg='white').grid(column=1, row=8)
+
+
+
+Button(Lw20, width=4, text="Run", bg="gray", command=Amper).grid(column=2, row=7)
+
+#############################################################
+##################     Bloc  Comparaison_données    #####
+#############################################################
+#***********************************************************
+#############################################################
+##################     Bloc  Resistance équivalent                   #####
+#############################################################
+
+#LabelFrame dans Lw2
+Lw4210 = LabelFrame(L, text="R_Total", padx=1, pady=1)
+Lw4210.pack(fill="both", expand="yes")
+ligne=1
+Label(Lw4210, text="R_Deversoir",bg='white').grid(column=0, row=ligne)
+R_Deversoir=DoubleVar()
+Entry(Lw4210,textvariable=R_Deversoir,width=8,bg='white').grid(column=1, row=ligne)
+ligne=2
+Label(Lw4210, text="R_Cables",bg='white').grid(column=0, row=ligne)
+R_Cables=DoubleVar()
+Entry(Lw4210,textvariable=R_Cables,width=8,bg='white').grid(column=1, row=ligne)
+ligne=3
+Label(Lw4210, text="R_Equipements",bg='white').grid(column=0, row=ligne)
+R_Equipements=DoubleVar()
+Entry(Lw4210,textvariable=R_Equipements,width=8,bg='white').grid(column=1, row=ligne)
+
+R=DoubleVar()
+
+def cal_R():
+    r=round((R_Deversoir.get()+R_Cables.get()+R_Equipements.get()),1)
+    R.set(r)
+    print('resistance',R.get())
+    Label(Lw4210, text=f"{R.get()} (Ω)",width=10,fg='red',bg='white').grid(column=1, row=4)
+
+Label(Lw4210, text=f"{R.get()} (Ω)",width=10,fg='red',bg='white').grid(column=1, row=4)
+Button(Lw4210, width=5, text="Run", bg="gray", command=cal_R).grid(column=2, row=4)
+
+#############################################################
+#################fin Bloc  puissance circuit electrique#####
+#############################################################
+
+#############################################################
+##################Bloc  puissance circuit electrique########
+#############################################################
+
+#LabelFrame dans Lw2
+Lw210 = LabelFrame(Lw4, text="POWERS_RECTIFIER", padx=1, pady=1)
+Lw210.pack(fill="both", expand="yes")
+ligne=1
+Label(Lw210, text="I:",bg='white').grid(column=0, row=ligne)
+Courant=DoubleVar()
+Entry(Lw210,textvariable=Courant,width=8,bg='white').grid(column=1, row=ligne)
+ligne=2
+Label(Lw210, text="V:",bg='white').grid(column=0, row=ligne)
+Tension=DoubleVar()
+Entry(Lw210,textvariable=Tension,width=8,bg='white').grid(column=1, row=ligne)
+
+ligne=3
+Label(Lw210, text="Rend:",bg='white').grid(column=0, row=ligne)
+Rend=DoubleVar()
+Entry(Lw210,textvariable=Rend,width=8,bg='white').grid(column=1, row=ligne)
+
+Puiss=DoubleVar()
+V_driving=DoubleVar()
+def Puissance():
+    v=round((Courant.get()*R.get()),1)
+    V_driving.set(v)
+    print('V_driving',V_driving.get())
+    Label(Lw210, text=f"V_driving: {V_driving.get()} (V)",width=15,fg='red',bg='white').grid(column=2, row=3)
+    r=round(((Courant.get()*Tension.get())/Rend.get()),1)
+    Puiss.set(r)
+    print('Puiss',Puiss.get())
+    Label(Lw210,text=f"Puissance: {Puiss.get()} (W)",width=15,fg='red',bg='white').grid(column=1, row=4)
+    
+
+Label(Lw210, text=f"V_driving: {V_driving.get()} (V)",width=15,fg='red',bg='white').grid(column=2, row=3)
+
+Label(Lw210, text=f"Puissance: {Puiss.get()} (W)",width=15,fg='red',bg='white').grid(column=1, row=4)
+Button(Lw210, width=5, text="Run", bg="gray", command=Puissance).grid(column=2, row=4)
+
+#############################################################
+##################     fin Bloc  puissance circuit electrique                   #####
+#############################################################
+
+# frame 1
+Frame1 = Frame(L, borderwidth=2, relief=GROOVE)
+Frame1.pack(side=LEFT, padx=5, pady=5)
+# frame 2
+#Frame2 = Frame(Lw2, borderwidth=2, relief=GROOVE)
+#Frame2.pack(side=LEFT, padx=5, pady=5)
+
+####################Composant 01##################################
+
+####################################################
+#==================================LABEL WIDGET=======================================
+"""
+txt_date = Label(Buttons, text="Date:", font=('arial', 10), bd=5)
+txt_date.pack(side=LEFT,padx=1, pady=1)
+
+txt_result = Label(Buttons)
+txt_result.pack(side=TOP)
+"""
+#####################Variable ##################################
+Date = StringVar()
+
+
+SEARCH = StringVar()
+SEARCH_date_init = StringVar()
+SEARCH_date_final = StringVar()
+
+Unite = StringVar()
+Nheure = DoubleVar()
+Arret_Travaux = StringVar()
+########################################################
+"""
+gra = OscilloGraphe(L, 250, 180)
+gra.pack()
+gra.configure(bg ='ivory', bd =2, relief=SUNKEN)
+"""
+
+#==================================Button=======================================
+#############################################################
+def projet():
+    fenetre1=Toplevel()
+    fenetre1.title('Nouveau_Projet')
+    screen_width = fenetre1.winfo_screenwidth()
+    screen_height = fenetre1.winfo_screenheight()
+    width = 300
+    height = 100
+    x = (screen_width/2) - (width/2)
+    y = (screen_height/2) - (height/2)
+    fenetre1.geometry('%dx%d+%d+%d' % (width, height, x, y))
+    fenetre1.resizable(0, 0)
+
+
+
+
+    #----------------------------
+    p5 = PanedWindow(fenetre1, orient=HORIZONTAL)
+    p5.pack(side=LEFT, expand=Y, fill=BOTH, pady=1, padx=1)
+    p5.pack()
+
+
+    p50 = PanedWindow(p5, orient=VERTICAL)
+    p50.pack(side=LEFT, expand=Y, fill=BOTH, pady=1, padx=1)
+    p50.pack()
+      #----------------------------
+    p51 = PanedWindow(p5, orient=VERTICAL)
+    p51.pack(side=LEFT, expand=Y, fill=BOTH, pady=1, padx=1)
+    p51.pack()
+
+
+#----------------------------
+    p6 = PanedWindow(fenetre1, orient=HORIZONTAL)
+    p6.pack(side=LEFT, expand=Y, fill=BOTH, pady=1, padx=1)
+    p6.pack()
+
+     #-----------------------------------------
+    
+    Label(p50, text="Client:",width=8).pack(side=TOP,padx=1, pady=1)
+    Client = StringVar()
+    client=Entry(p51,textvariable=Client,width=30)
+    client.pack(side=TOP,padx=1, pady=1)
+    
+    Label(p50, text="Projet:",width=8).pack(side=TOP,padx=1, pady=1)
+    Projet = StringVar()
+    projet=Entry(p51,textvariable=Projet,width=30)
+    projet.pack(side=TOP,padx=1, pady=1)
+
+    Label(p50, text="Date:",width=8).pack(side=TOP,padx=1, pady=1)
+    Date = StringVar()
+    date=Entry(p51,textvariable=Date,width=10)
+    date.pack(side=TOP,padx=1, pady=1)
+    
+
+
+    #position des bouton  rste a verifier
+    Buttons = Frame(p6, width=0, height=100, bd=2, relief="groove")
+    Buttons.pack(side=BOTTOM)
+
+
+    #==================================BUTTONS WIDGET=====================================
+
+  
+        
+
+    
+
+    fenetre1.mainloop()
+#==================================LIST WIDGET========================================
+
+ 
+#...............................................................
+menubar = Menu(fenetre)
+
+menu1 = Menu(menubar, tearoff=0)
+menu1.add_command(label="CAL_Resultat1:", command=calcule1)# appelle a la fonction op 
+menu1.add_command(label="CAL_Resultat2", command=calcule2)# appelle a la fonction PJ
+
+menu1.add_separator()
+menu1.add_command(label="Quitter", command=fenetre.destroy)#command=Frame3.destroy
+menubar.add_cascade(label="Fichier", menu=menu1)
+
+
+
+fenetre.config(menu=menubar)
+    
+
+#########################################################"
+
+   
+if __name__ == '__main__':
+
+
+
+
+
+    
+#==================================INITIALIZATION=====================================
+
+
+
+
+    fenetre.mainloop()
